@@ -1,0 +1,32 @@
+#HTTP Redirect
+server {
+  listen 80;
+  server_name itop.server.com www.itop.server.com;
+  rewrite ^ https://$server_name$request_uri? permanent;
+}
+
+#HTTPS
+server {
+  listen 443;
+  server_name itop.server.com www.itop.server.com;
+  root /var/www/iTop/;
+  error_log /var/log/nginx/itop_error.log;
+  index index.php;
+ 
+  ssl on;
+  ssl_certificate /etc/nginx/ssl/server.crt;
+  ssl_certificate_key /etc/nginx/ssl/server.key;
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+
+#Pass PHP scripts to PHP-FPM
+  location ~* \.php$ {
+    fastcgi_pass unix:/var/run/php5-fpm.sock;
+    fastcgi_index   index.php;
+    fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+    fastcgi_param   SCRIPT_NAME      $fastcgi_script_name;
+    fastcgi_read_timeout 3600;
+    include /etc/nginx/fastcgi_params;
+  }
+}
